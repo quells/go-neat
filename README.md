@@ -2,43 +2,60 @@
 
 [NeuroEvolution of Augmenting Topologies](https://en.wikipedia.org/wiki/Neuroevolution_of_augmenting_topologies) (NEAT)
 
-The NEAT algorithm generates neural networks that are not constrained to a fixed structure of nodes and connections.
+The NEAT algorithm generates neural networks that are not constrained to a fixed structure of nodes and connections. This can be useful for developing control systems that can be "trained" to perform some task without making assumptions about how best to perform that task.
 
-This implementation is mostly a proof of concept; needs to be highly optimized for production use. Notably, genes and genomes are passed around as strings for debugging purposes.
+This implementation is mostly a proof of concept; needs to be highly optimized for production use. Notably, `Genome` is designed to be passed around as a string for debugging purposes and is frequently encoded and decoded.
 
 ## Documentation
 
+A neural network in NEAT is composed of nodes with connections between them. Each node has an accumulator value (`float64`) that is added to by connections from other nodes. Each connection connects two nodes together and has a weight value (`float64`) associated with it. The weight is multiplied by the accumulator of the input node, which is added to the accumulator of the output node. Then, a nonlinear function (sigmoid in this case) is applied to each accumulator. Finally, a decision can be made based on the value of certain pre-selected nodes. This process is performed in `func (b Brain) ReasonAbout`.
+
+Random mutations to a `Genome` include changing connection weights, adding and disabling connections between existing nodes, and adding new nodes. New nodes are added in place of an existing connection to introduce nonlinearity.
+
 ```golang
 type Gene struct{ ... }
-    Gene holds information to build a node or connection
-```
+    // Gene holds information to build a node or connection
 
-```golang
 type Genome []Gene
-    Genome represents the genes for a neural network
+    // Genome represents the genes for a neural network
 
 func StartingGenome(inputs, outputs int) (Genome, int)
+    // StartingGenome produces a Genome with the minimum nodes and connections for a set of inputs and outputs
+    // Connection weights are chosen from a uniform random distribution
+    // The number of inputs and outputs depends on the fitness evaluation function
+
 func DecodeGenome(s string) Genome
+    // DecodeGenome produces a Genome as described by a string
 ```
 
 ```golang
 type Brain struct{ ... }
-    Brain represents a neural network
-
-func (b Brain) ReasonAbout(inputs []float64) ([]float64, Brain)
+    // Brain represents a neural network
 
 func BuildBrain(genes Genome) Brain
+    // BuildBrain returns a Brain instance configured via a 
+
+func (b Brain) ReasonAbout(inputs []float64) ([]float64, Brain)
+    // ReasonAbout makes a decision based on some inputs
+    // The number of inputs and outputs must remain constant and is determined by the Genome
 ```
 
 ```golang
+type Species struct{ ... }
+    // Species represents a collection of Brains that share Genome traits
+    // A Species will be eliminated if it does not improve after 15 time step
+
 type Population struct{
     Champion *Brain
     ...
 }
-    Population represents a collection of Genomes that compete to optimize some function.
-    Handles random genetic mutation & recombination, fitness calculations, and speciation.
+    // Population represents a collection of Species that compete to optimize some function
+    // Handles random genetic mutation & recombination, fitness calculations, and speciation
 
 func NewPopulation(inputs, outputs, size int) Population
+    // NewPopulation creates a collection of Brains with the correct number of inputs and outputs to handle a fitness evaluation function
+
+func (p *Population) Optimize(f FitnessEval, numGeneration int)
 ```
 
 ## Usage Example
@@ -69,13 +86,6 @@ func main() {
     
     fmt.Println(population.Champion.Genes)
     
-    // n,0,0;n,1,0;n,2,0;n,3,1;c,4,0,3,bff104cecce130fe,1; \
-    // c,5,1,3,c015b23c319a5380,1;c,6,2,3,4003ff6a494374a2,0; \
-    // c,32,3,3,400c6e86f0d9bee6,1;c,74,1,3,bffc6c4a92abfa3f,0; \
-    // n,462,2;c,463,1,4,400a1dafe328ce5a,1;c,464,4,3,3fe0d6497e551b3f,1; \
-    // n,588,2;c,589,2,5,3ff0d10b88caab9c,1;c,590,5,3,401251908a79b8ca,1; \
-    // c,612,1,5,bff289e75833becd,1;
-    
-    // ^ output from the xor example, linebreaks added
+    // n,0,0;n,1,0;n,2,0;n,3,1;c,4,0,3,bff104cecce130fe,1...
 }
 ```

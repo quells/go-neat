@@ -97,6 +97,7 @@ func (G Genome) encode() string {
 	return s
 }
 
+// DecodeGenome produces a Genome as described by a string
 func DecodeGenome(s string) Genome {
 	genes := strings.Split(s, ";")
 	genes = genes[:len(genes)-1]

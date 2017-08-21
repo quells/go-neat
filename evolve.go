@@ -7,6 +7,7 @@ import (
 	"sort"
 )
 
+// Species represents a collection of Brains that share Genome traits
 type Species struct {
 	members                []Brain
 	champion               *Brain
@@ -14,14 +15,17 @@ type Species struct {
 	timeWithoutImprovement int
 }
 
+// Population represents a collection of Species that compete to optimize some function
 type Population struct {
 	species  []Species
 	Champion *Brain
 	nextID   int
 }
 
+// FitnessEval is used to evaluate how well a brain can solve a problem
 type FitnessEval func(Brain) float64
 
+// NewPopulation creates a collection of Brains with the correct number of inputs and outputs to handle a FitnessEval
 func NewPopulation(inputs, outputs, size int) Population {
 	members := make([]Brain, size)
 	_, nextID := StartingGenome(inputs, outputs)
@@ -43,6 +47,7 @@ func (p Population) size() int {
 	return N
 }
 
+// Optimize uses a FitnessEval to identify low-performing candidate Genomes and replace them with new ones based on well-performing candidates
 func (p *Population) Optimize(f FitnessEval, numGenerations int) {
 	N := p.size()
 
@@ -187,7 +192,7 @@ func (p *Population) Optimize(f FitnessEval, numGenerations int) {
 
 		n, c := p.Champion.nodes, p.Champion.connections
 		fmt.Printf("Gen %d: %d specimens in %d species, %.2f best score with %d nodes %d connections\n", t, p.size(), len(p.species), p.Champion.fitness, len(n), len(c))
-		if t % 50 == 0 {
+		if t%50 == 0 {
 			fmt.Println(p.Champion.Genes)
 		}
 	}
