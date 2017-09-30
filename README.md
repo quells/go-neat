@@ -56,6 +56,7 @@ func NewPopulation(inputs, outputs, size int) Population
     // NewPopulation creates a collection of Brains with the correct number of inputs and outputs to handle a fitness evaluation function
 
 func (p *Population) Optimize(f FitnessEval, numGeneration int)
+    // Optimize uses a fitness evaluation function to identify low-performing candidate Genomes and replace them with new ones based on well-performing candidates
 ```
 
 ## Usage Example
