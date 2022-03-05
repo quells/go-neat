@@ -61,8 +61,26 @@ func BuildBrain(genes Genome) Brain {
 		} else if strings.HasPrefix(g.payload, "c") {
 			connGene := decodeConnectionGene(g.payload)
 			if connGene.enabled {
-				conn := Connection{connGene.from, connGene.to, connGene.weight}
-				connections = append(connections, conn)
+				isDumplicate := false  // prevent dumplicated connections
+
+				for i, v := range connections {
+					if v.to == connGene.to && v.from == connGene.from {
+						isDumplicate = true
+						connections[i].weight += connGene.weight
+						break
+					}
+
+					if v.to == connGene.from && v.from == connGene.to {
+						isDumplicate = true
+						connections[i].weight -= connGene.weight
+						break
+					}
+				}
+
+				if !isDumplicate {
+					conn := Connection{connGene.from, connGene.to, connGene.weight}
+					connections = append(connections, conn)
+				}
 			}
 		} else {
 			log.Fatalf("Unknown gene signature: %s", g.payload)
